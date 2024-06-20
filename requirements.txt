@@ -1,0 +1,6 @@
+streamlit
+PyMuPDF
+openai
+reportlab
+fpdf
+python-docx
