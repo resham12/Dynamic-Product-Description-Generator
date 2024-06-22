@@ -18,12 +18,15 @@ main_pdf_path = os.path.join(temp_dir, "main_product.pdf")
 competitor_pdf_path = os.path.join(temp_dir, "competitor_product.pdf")
 
 # Initialize session state variables
+
 if 'api_key' not in st.session_state:
     st.session_state.api_key = ""
 if 'review_analysis' not in st.session_state:
     st.session_state.review_analysis = ""
 if 'competitor_review_analysis' not in st.session_state:
     st.session_state.competitor_review_analysis = ""
+if 'keywords_and_descriptions' not in st.session_state:
+    st.session_state.keywords_and_descriptions = ""
 
 # Set up OpenAI API key
 openai.api_key = st.session_state.api_key
@@ -194,38 +197,29 @@ def main_screen():
 
     # Generate keywords and descriptions
     if st.session_state.review_analysis:
-        if st.button("Generate Keywords and Descriptions"):
+        if st.button("Generate Keywords, Descriptions, and Optimized Titles"):
+            # Generate keywords and descriptions
             user_keywords, user_descriptions = generate_keywords_and_descriptions(st.session_state.review_analysis)
             st.session_state.keywords_and_descriptions = f"Keyword Recommendations:\n\n{user_keywords}\n\nDynamic Descriptions:\n\n{user_descriptions}"
             st.write("Keyword Recommendations:", user_keywords)
             st.write("Dynamic Descriptions:", user_descriptions)
             render_download_options(st.session_state.keywords_and_descriptions, "Keywords_and_Descriptions")
 
-        # Generate optimized titles and descriptions
-        if st.button("Generate Optimized Titles and Descriptions"):
-            optimized_content = openai.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are an assistant that optimizes product titles and descriptions for e-commerce platforms."},
-                    {"role": "user", "content": f"Based on these keywords and descriptions, create 3 optimized product titles and descriptions. Ensure compliance with platform restrictions on title length and keyword usage:\n\n{st.session_state.keywords_and_descriptions}"}
-                ]
-            )
-            optimized_content_text = optimized_content.choices[0].message.content
-            st.write("Optimized Titles and Descriptions:", optimized_content_text)
-            render_download_options(optimized_content_text, "Optimized_Titles_and_Descriptions")
-
-        # Generate review summary
-        if st.button("Generate Review Summary"):
-            review_summary = openai.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are an assistant that summarizes product review insights."},
-                    {"role": "user", "content": f"Provide a concise overview of what customers are saying about the product. Summarize positive and negative attributes, highlighting key features and potential improvements:\n\n{st.session_state.review_analysis}"}
-                ]
-            )
-            review_summary_text = review_summary.choices[0].message.content
-            st.write("Summarized Review Insights:", review_summary_text)
-            render_download_options(review_summary_text, "Review_Summary")
+            # Generate optimized titles and descriptions
+            if st.session_state.keywords_and_descriptions:
+                optimized_content = openai.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "You are an assistant that optimizes product titles and descriptions for e-commerce platforms."},
+                        {"role": "user", "content": f"Based on these keywords and descriptions, create 3 optimized product titles and descriptions. Ensure compliance with platform restrictions on title length and keyword usage:\n\n{st.session_state.keywords_and_descriptions}"}
+                    ]
+                )
+                optimized_content_text = optimized_content.choices[0].message.content
+                st.write("Optimized Titles and Descriptions:", optimized_content_text)
+                render_download_options(optimized_content_text, "Optimized_Titles_and_Descriptions")
+            else:
+                st.warning("Keywords and descriptions have not been generated yet.")
+ 
 
     # Competitor analysis
     if uploaded_competitor_file:
